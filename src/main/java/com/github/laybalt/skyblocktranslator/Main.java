@@ -6,7 +6,7 @@ import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.common.event.FMLInitializationEvent;
 
 @Mod(modid = "skyblocktranslator", useMetadata=true)
-public class ExampleMod {
+public class Main {
     @Mod.EventHandler
     public void init(FMLInitializationEvent event) {
         System.out.println("Dirt: " + Blocks.dirt.getUnlocalizedName());
