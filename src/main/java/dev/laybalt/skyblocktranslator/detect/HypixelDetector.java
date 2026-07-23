@@ -20,10 +20,10 @@ public final class HypixelDetector {
 
 	public static boolean isTranslationActive() {
 		ModConfig config = ModConfig.get();
-		if (!config.enabled) {
+		if (!config.general.enabled) {
 			return false;
 		}
-		if (!config.onlyOnHypixel) {
+		if (!config.general.onlyOnHypixel) {
 			return true;
 		}
 		ServerData server = Minecraft.getInstance().getCurrentServer();

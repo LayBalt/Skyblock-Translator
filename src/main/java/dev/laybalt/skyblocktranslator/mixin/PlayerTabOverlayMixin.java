@@ -24,7 +24,7 @@ import dev.laybalt.skyblocktranslator.pipeline.TranslationEngine;
 public abstract class PlayerTabOverlayMixin {
 	@Inject(method = "getNameForDisplay", at = @At("RETURN"), cancellable = true)
 	private void skyblockTranslator$translateEntry(PlayerInfo info, CallbackInfoReturnable<Component> cir) {
-		if (!ModConfig.get().translateTabList || !HypixelDetector.isTranslationActive()) {
+		if (!ModConfig.get().surfaces.tabList || !HypixelDetector.isTranslationActive()) {
 			return;
 		}
 		Component original = cir.getReturnValue();
@@ -45,7 +45,7 @@ public abstract class PlayerTabOverlayMixin {
 	}
 
 	private static Component translateInfo(Component component) {
-		if (component == null || !ModConfig.get().translateTabList || !HypixelDetector.isTranslationActive()) {
+		if (component == null || !ModConfig.get().surfaces.tabList || !HypixelDetector.isTranslationActive()) {
 			return component;
 		}
 		return TranslationEngine.get().translate(component);

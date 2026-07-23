@@ -20,6 +20,10 @@ repositories {
 		name = 'Terraformers'
 		url = 'https://maven.terraformersmc.com/releases/'
 	}
+	maven {
+		name = 'NotEnoughUpdates'
+		url = 'https://maven.notenoughupdates.org/releases/'
+	}
 }
 
 loom {
@@ -49,6 +53,12 @@ dependencies {
 	// Config UI library, bundled into our jar (jar-in-jar)
 	implementation "dev.isxander:yet-another-config-lib:${project.yacl_version}"
 	include "dev.isxander:yet-another-config-lib:${project.yacl_version}"
+
+	// MoulConfig (NEU/SkyHanni-style config UI); written in Kotlin, so FLK comes along
+	implementation "org.notenoughupdates.moulconfig:modern-26.2:${project.moulconfig_version}"
+	include "org.notenoughupdates.moulconfig:modern-26.2:${project.moulconfig_version}"
+	implementation "net.fabricmc:fabric-language-kotlin:${project.flk_version}"
+	include "net.fabricmc:fabric-language-kotlin:${project.flk_version}"
 
 	// Mod Menu integration (optional at runtime; present in dev for testing)
 	compileOnly "com.terraformersmc:modmenu:${project.modmenu_version}"
