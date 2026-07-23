@@ -4,7 +4,10 @@
 	"compatibilityLevel": "JAVA_25",
 	"client": [
 		"AbstractContainerScreenMixin",
-		"ChatComponentMixin"
+		"BossHealthOverlayMixin",
+		"ChatComponentMixin",
+		"HudMixin",
+		"PlayerTabOverlayMixin"
 	],
 	"injectors": {
 		"defaultRequire": 1

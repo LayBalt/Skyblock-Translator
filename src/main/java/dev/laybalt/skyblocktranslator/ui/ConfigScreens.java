@@ -52,6 +52,9 @@ public final class ConfigScreens {
 						.option(bool("sbt.config.translateMenus", true, () -> config.translateMenus, v -> config.translateMenus = v))
 						.option(bool("sbt.config.translateDialogs", true, () -> config.translateDialogs, v -> config.translateDialogs = v))
 						.option(bool("sbt.config.translatePlayerChat", false, () -> config.translatePlayerChat, v -> config.translatePlayerChat = v))
+						.option(bool("sbt.config.translateScoreboard", true, () -> config.translateScoreboard, v -> config.translateScoreboard = v))
+						.option(bool("sbt.config.translateTabList", true, () -> config.translateTabList, v -> config.translateTabList = v))
+						.option(bool("sbt.config.translateBossBar", true, () -> config.translateBossBar, v -> config.translateBossBar = v))
 						.build())
 				.build();
 

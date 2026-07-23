@@ -86,4 +86,40 @@ public final class LegacyText {
 		}
 		return legacy.substring(0, i);
 	}
+
+	/**
+	 * A code-delimited run of a legacy string. {@code codes} is the (possibly empty)
+	 * §-run that precedes {@code text}; {@code obfuscated} means §k is in effect,
+	 * i.e. the text is decorative garbage that must never be translated.
+	 */
+	public record Segment(String codes, String text, boolean obfuscated) {
+	}
+
+	/** Splits a legacy string into styled segments, tracking §k state across resets. */
+	public static java.util.List<Segment> segments(String legacy) {
+		java.util.List<Segment> out = new java.util.ArrayList<>();
+		boolean obfuscated = false;
+		int i = 0;
+		while (i < legacy.length()) {
+			StringBuilder codes = new StringBuilder();
+			while (i + 1 < legacy.length() && legacy.charAt(i) == SECTION) {
+				char code = Character.toLowerCase(legacy.charAt(i + 1));
+				if (code == 'k') {
+					obfuscated = true;
+				} else if (code == 'r' || (code >= '0' && code <= '9') || (code >= 'a' && code <= 'f')) {
+					obfuscated = false; // colors and reset clear formatting
+				}
+				codes.append(legacy, i, i + 2);
+				i += 2;
+			}
+			int start = i;
+			while (i < legacy.length() && legacy.charAt(i) != SECTION) {
+				i++;
+			}
+			if (codes.length() > 0 || i > start) {
+				out.add(new Segment(codes.toString(), legacy.substring(start, i), obfuscated));
+			}
+		}
+		return out;
+	}
 }

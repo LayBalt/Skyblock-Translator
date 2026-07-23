@@ -22,6 +22,12 @@
 	"sbt.config.translateDialogs.desc": "Server messages in chat: dialogues, quests, announcements.",
 	"sbt.config.translatePlayerChat": "Player chat",
 	"sbt.config.translatePlayerChat.desc": "Translate messages written by other players.",
+	"sbt.config.translateScoreboard": "Scoreboard sidebar",
+	"sbt.config.translateScoreboard.desc": "The SKYBLOCK sidebar on the right.",
+	"sbt.config.translateTabList": "Tab list",
+	"sbt.config.translateTabList.desc": "Tab entries, header and footer. Player names are never sent to an online translator.",
+	"sbt.config.translateBossBar": "Boss bar",
+	"sbt.config.translateBossBar.desc": "Event and objective banners at the top of the screen.",
 
 	"sbt.config.translateOnline": "Online translation",
 	"sbt.config.translateOnline.desc": "Translate unknown strings through an online service and cache the result locally. With this off, only dictionaries and the cache are used.",

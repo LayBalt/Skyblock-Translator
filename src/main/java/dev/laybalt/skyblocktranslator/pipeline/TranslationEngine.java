@@ -159,6 +159,15 @@ public final class TranslationEngine {
 
 	/** Translates one component; returns the original instance when there is no translation. */
 	public Component translate(Component original) {
+		return translate(original, true);
+	}
+
+	/**
+	 * @param allowMt false for text that must never reach an online translator
+	 *                (e.g. tab-list entries containing player names); dictionary,
+	 *                cache and overrides still apply
+	 */
+	public Component translate(Component original, boolean allowMt) {
 		String legacy = LegacyText.toLegacy(original);
 		if (legacy.isBlank()) {
 			return original;
@@ -169,7 +178,7 @@ public final class TranslationEngine {
 				return known;
 			}
 		}
-		Component result = compute(legacy, original);
+		Component result = compute(legacy, original, allowMt);
 		synchronized (memo) {
 			memo.put(legacy, result);
 		}
@@ -192,26 +201,71 @@ public final class TranslationEngine {
 		return out != null ? out : lines;
 	}
 
-	private Component compute(String legacy, Component original) {
+	private Component compute(String legacy, Component original, boolean allowMt) {
 		String plain = LegacyText.stripCodes(legacy);
 		if (plain.isBlank()) {
 			return original;
 		}
+		// Lines with §k decorations are handled per segment: whole-line templates
+		// would swallow the obfuscated garbage into the key and the §k would then
+		// smear over the entire translated line.
+		if (legacy.contains("§k") || legacy.contains("§K")) {
+			return translateSegmented(legacy, original, allowMt);
+		}
 		Normalizer.Template template = Normalizer.normalize(legacy);
-		for (TranslationProvider provider : providers) {
-			String translation = provider.lookup(template.key());
+		String translation = lookup(template.key(), allowMt);
+		if (translation == null) {
+			return original;
+		}
+		String restored = Normalizer.restore(translation, template.args());
+		return Component.literal(LegacyText.leadingCodes(legacy) + restored);
+	}
+
+	/**
+	 * Translates each non-obfuscated text segment independently, keeping the
+	 * original §-code structure (and the §k runes) exactly where they were.
+	 */
+	private Component translateSegmented(String legacy, Component original, boolean allowMt) {
+		StringBuilder out = new StringBuilder(legacy.length());
+		boolean changed = false;
+		for (LegacyText.Segment segment : LegacyText.segments(legacy)) {
+			out.append(segment.codes());
+			String text = segment.text();
+			if (segment.obfuscated() || text.isBlank() || !hasLetters(text)) {
+				out.append(text);
+				continue;
+			}
+			Normalizer.Template template = Normalizer.normalize(text);
+			String translation = lookup(template.key(), allowMt);
 			if (translation != null) {
-				remember(template.key(), translation);
-				String restored = Normalizer.restore(translation, template.args());
-				return Component.literal(LegacyText.leadingCodes(legacy) + restored);
+				out.append(Normalizer.restore(translation, template.args()));
+				changed = true;
+			} else {
+				out.append(text);
 			}
 		}
-		remember(template.key(), null);
-		recordMissing(template.key());
-		if (remoteQueue != null && !rejected.contains(template.key()) && hasLetters(template.key())) {
-			remoteQueue.submit(template.key());
+		return changed ? Component.literal(out.toString()) : original;
+	}
+
+	/** Provider chain + MT scheduling for one template key; null when untranslated. */
+	@Nullable
+	private String lookup(String key, boolean allowMt) {
+		for (TranslationProvider provider : providers) {
+			String translation = provider.lookup(key);
+			if (translation != null) {
+				remember(key, translation);
+				return translation;
+			}
 		}
-		return original;
+		remember(key, null);
+		recordMissing(key);
+		// Only phrases go to MT: single tokens are usually names or item ids, and
+		// machine-translating player names would be both wrong and rude.
+		if (allowMt && remoteQueue != null && !rejected.contains(key)
+				&& hasLetters(key) && key.indexOf(' ') >= 0) {
+			remoteQueue.submit(key);
+		}
+		return null;
 	}
 
 	private int remoteResults;

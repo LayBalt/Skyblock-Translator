@@ -22,6 +22,12 @@
 	"sbt.config.translateDialogs.desc": "Серверные сообщения в чате: диалоги, задания, объявления.",
 	"sbt.config.translatePlayerChat": "Чат игроков",
 	"sbt.config.translatePlayerChat.desc": "Переводить сообщения других игроков.",
+	"sbt.config.translateScoreboard": "Сайдбар (скорборд)",
+	"sbt.config.translateScoreboard.desc": "Панель SKYBLOCK справа.",
+	"sbt.config.translateTabList": "TAB-список",
+	"sbt.config.translateTabList.desc": "Записи, шапка и подвал таба. Ники игроков никогда не отправляются в онлайн-переводчик.",
+	"sbt.config.translateBossBar": "Босс-бар",
+	"sbt.config.translateBossBar.desc": "Баннеры событий и целей вверху экрана.",
 
 	"sbt.config.translateOnline": "Онлайн-перевод",
 	"sbt.config.translateOnline.desc": "Неизвестные строки переводятся онлайн-сервисом и кэшируются локально. Если выключено — работают только словари и кэш.",

@@ -32,6 +32,10 @@ public final class ModConfig {
 	public boolean translateDialogs = true;
 	/** Messages written by other players; off by default. */
 	public boolean translatePlayerChat = false;
+	public boolean translateScoreboard = true;
+	/** Tab entries never use online MT (player names must not be machine-translated). */
+	public boolean translateTabList = true;
+	public boolean translateBossBar = true;
 	/** Send unknown strings to an online translator and cache the results. */
 	public boolean translateOnline = true;
 	/** "google" (free, zero setup) or "libretranslate" (own instance below). */
