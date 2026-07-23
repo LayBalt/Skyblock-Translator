@@ -40,6 +40,9 @@ dependencies {
 
 	// Dev-environment only: real-account login for runClient (not bundled in the jar)
 	runtimeOnly "me.djtheredstoner:DevAuth-fabric:1.2.2"
+
+	testImplementation 'org.junit.jupiter:junit-jupiter:5.11.4'
+	testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
 }
 
 processResources {

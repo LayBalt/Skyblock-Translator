@@ -2,7 +2,9 @@
 	"required": true,
 	"package": "dev.laybalt.skyblocktranslator.mixin",
 	"compatibilityLevel": "JAVA_25",
-	"client": [],
+	"client": [
+		"AbstractContainerScreenMixin"
+	],
 	"injectors": {
 		"defaultRequire": 1
 	},
