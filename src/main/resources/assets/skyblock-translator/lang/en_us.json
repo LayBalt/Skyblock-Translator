@@ -1,0 +1,40 @@
+{
+	"key.skyblock-translator.config": "Open Translator Settings",
+	"key.categories.skyblock-translator.main": "SkyBlock Translator",
+
+	"sbt.config.title": "SkyBlock Translator",
+	"sbt.config.category.general": "General",
+	"sbt.config.category.online": "Online Translation",
+	"sbt.config.category.editor": "String Editor",
+
+	"sbt.config.enabled": "Enable translation",
+	"sbt.config.enabled.desc": "Master switch for the whole mod.",
+	"sbt.config.language": "Language",
+	"sbt.config.language.desc": "Target language. Bundled dictionaries exist for Russian; other languages rely on online translation.",
+	"sbt.config.onlyOnHypixel": "Only on Hypixel",
+	"sbt.config.onlyOnHypixel.desc": "Translate only while connected to Hypixel. Disable to test in singleplayer.",
+	"sbt.config.group.categories": "What to translate",
+	"sbt.config.translateItems": "Item tooltips",
+	"sbt.config.translateItems.desc": "Item names and lore in container screens.",
+	"sbt.config.translateMenus": "Menu titles",
+	"sbt.config.translateMenus.desc": "Container titles and labels.",
+	"sbt.config.translateDialogs": "NPC dialogues & system messages",
+	"sbt.config.translateDialogs.desc": "Server messages in chat: dialogues, quests, announcements.",
+	"sbt.config.translatePlayerChat": "Player chat",
+	"sbt.config.translatePlayerChat.desc": "Translate messages written by other players.",
+
+	"sbt.config.translateOnline": "Online translation",
+	"sbt.config.translateOnline.desc": "Translate unknown strings through an online service and cache the result locally. With this off, only dictionaries and the cache are used.",
+	"sbt.config.onlineProvider": "Provider",
+	"sbt.config.onlineProvider.desc": "google — free, works out of the box. libretranslate — your own instance (URL below).",
+	"sbt.config.dailyOnlineBudget": "Daily request limit",
+	"sbt.config.dailyOnlineBudget.desc": "Maximum online translation requests per day. Cached translations don't count.",
+	"sbt.config.libreUrl": "LibreTranslate URL",
+	"sbt.config.libreUrl.desc": "Instance address, e.g. https://libretranslate.example.com",
+	"sbt.config.libreApiKey": "LibreTranslate API key",
+	"sbt.config.libreApiKey.desc": "Leave empty if the instance doesn't require one.",
+
+	"sbt.config.editor.entry.desc": "Original: %s\n\nEdit the translation and save. Your edit becomes an override — it beats the dictionary and the online cache.",
+	"sbt.config.editor.empty": "Nothing seen yet",
+	"sbt.config.editor.empty.desc": "Open some menus or tooltips in game, then come back — the latest strings will show up here for editing."
+}

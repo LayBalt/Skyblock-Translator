@@ -28,8 +28,18 @@ public final class ModConfig {
 	public boolean onlyOnHypixel = true;
 	public boolean translateItems = true;
 	public boolean translateMenus = true;
-	/** Reserved for Phase 2 (chat / NPC dialogue translation). */
-	public boolean translateChat = false;
+	/** NPC dialogues and other server system messages in chat. */
+	public boolean translateDialogs = true;
+	/** Messages written by other players; off by default. */
+	public boolean translatePlayerChat = false;
+	/** Send unknown strings to an online translator and cache the results. */
+	public boolean translateOnline = true;
+	/** "google" (free, zero setup) or "libretranslate" (own instance below). */
+	public String onlineProvider = "google";
+	public String libreTranslateUrl = "";
+	public String libreTranslateApiKey = "";
+	/** Max online translation requests per day. */
+	public int dailyOnlineBudget = 2000;
 	/** Append unknown templates to config/skyblock-translator/untranslated-<lang>.txt. */
 	public boolean dumpUntranslated = true;
 	/** Reserved for Phase 3 (premium cloud translation). */

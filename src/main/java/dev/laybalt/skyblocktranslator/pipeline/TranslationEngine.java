@@ -13,31 +13,42 @@ import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
 import net.minecraft.network.chat.Component;
+import org.jetbrains.annotations.Nullable;
 
 import dev.laybalt.skyblocktranslator.SkyblockTranslatorClient;
 import dev.laybalt.skyblocktranslator.config.ModConfig;
 import dev.laybalt.skyblocktranslator.providers.DictionaryProvider;
 import dev.laybalt.skyblocktranslator.providers.LocalCacheProvider;
+import dev.laybalt.skyblocktranslator.providers.OverrideProvider;
 import dev.laybalt.skyblocktranslator.providers.TranslationProvider;
+import dev.laybalt.skyblocktranslator.remote.GoogleFreeTranslator;
+import dev.laybalt.skyblocktranslator.remote.LibreTranslator;
+import dev.laybalt.skyblocktranslator.remote.RemoteQueue;
+import dev.laybalt.skyblocktranslator.remote.RemoteTranslator;
 
 /**
  * Render-side translation: takes the {@link Component} that is about to be drawn
- * and returns a translated replacement, or the original when nothing matches.
+ * and returns a translated replacement, or the original when nothing matches yet.
  *
- * <p>Resolution order: bundled dictionary → local cache (→ remote providers in
- * later phases). Results are memoized per flattened legacy string because
- * tooltips are rebuilt every frame. Unknown templates are appended to an
- * {@code untranslated-<lang>.txt} dump, which is how the dictionaries get grown.
+ * <p>Resolution order: user overrides → bundled dictionary → local cache. Misses
+ * are queued for online translation; when a result lands in the cache the memo is
+ * flushed, and because tooltips are rebuilt every frame the text updates live.
+ * Unknown templates are also appended to {@code untranslated-<lang>.txt}, which
+ * is how the bundled dictionaries get grown.
  */
 public final class TranslationEngine {
 	private static final int MEMO_LIMIT = 4096;
+	private static final int RECENT_LIMIT = 200;
 
-	private static TranslationEngine instance;
+	private static volatile TranslationEngine instance;
 
 	private final List<TranslationProvider> providers;
+	private final OverrideProvider overrides;
 	private final LocalCacheProvider cache;
+	@Nullable
+	private final RemoteQueue remoteQueue;
 
-	/** Legacy string -> rendered component. Guarded by itself (render thread + safety). */
+	/** Legacy string -> rendered component. Guarded by itself. */
 	private final Map<String, Component> memo = new LinkedHashMap<>(256, 0.75f, true) {
 		@Override
 		protected boolean removeEldestEntry(Map.Entry<String, Component> eldest) {
@@ -45,12 +56,25 @@ public final class TranslationEngine {
 		}
 	};
 
+	/** Recently seen templates (translation or null) — feeds the in-game string editor. */
+	private final Map<String, String> recentSeen = new LinkedHashMap<>(64, 0.75f, false) {
+		@Override
+		protected boolean removeEldestEntry(Map.Entry<String, String> eldest) {
+			return size() > RECENT_LIMIT;
+		}
+	};
+
+	/** Templates the MT provider mangled (placeholder mismatch) — don't retry, don't cache. */
+	private final Set<String> rejected = ConcurrentHashMap.newKeySet();
+
 	private final Set<String> dumped = ConcurrentHashMap.newKeySet();
 	private final Path dumpFile;
 
-	private TranslationEngine(String language) {
+	private TranslationEngine(ModConfig config) {
+		String language = config.language;
+		this.overrides = new OverrideProvider(ModConfig.directory(), language);
 		this.cache = new LocalCacheProvider(ModConfig.directory(), language);
-		this.providers = List.of(new DictionaryProvider(language), cache);
+		this.providers = List.of(overrides, new DictionaryProvider(language), cache);
 		this.dumpFile = ModConfig.directory().resolve("untranslated-" + language + ".txt");
 		if (Files.exists(dumpFile)) {
 			try {
@@ -59,10 +83,36 @@ public final class TranslationEngine {
 				SkyblockTranslatorClient.LOGGER.warn("Could not read {}", dumpFile, e);
 			}
 		}
+		this.remoteQueue = config.translateOnline
+				? new RemoteQueue(createTranslator(config), mtLang(language), config.dailyOnlineBudget,
+						ModConfig.directory(), this::onRemoteResult)
+				: null;
+	}
+
+	private static RemoteTranslator createTranslator(ModConfig config) {
+		if ("libretranslate".equals(config.onlineProvider) && !config.libreTranslateUrl.isBlank()) {
+			return new LibreTranslator(config.libreTranslateUrl, config.libreTranslateApiKey);
+		}
+		return new GoogleFreeTranslator();
+	}
+
+	/** "ru_ru" -> "ru" — MT services want plain ISO codes. */
+	private static String mtLang(String language) {
+		int idx = language.indexOf('_');
+		return idx > 0 ? language.substring(0, idx) : language;
 	}
 
 	public static void init() {
-		instance = new TranslationEngine(ModConfig.get().language);
+		instance = new TranslationEngine(ModConfig.get());
+	}
+
+	/** Recreates the engine after config changes (language, provider, toggles). */
+	public static synchronized void reload() {
+		TranslationEngine old = instance;
+		if (old != null) {
+			old.shutdown();
+		}
+		instance = new TranslationEngine(ModConfig.get());
 	}
 
 	public static TranslationEngine get() {
@@ -72,8 +122,39 @@ public final class TranslationEngine {
 		return instance;
 	}
 
+	public OverrideProvider overrides() {
+		return overrides;
+	}
+
 	public LocalCacheProvider cache() {
 		return cache;
+	}
+
+	/** Newest-first snapshot of recently seen templates for the string editor UI. */
+	public List<Map.Entry<String, String>> recentSeenSnapshot() {
+		synchronized (recentSeen) {
+			List<Map.Entry<String, String>> list = new ArrayList<>(recentSeen.size());
+			for (Map.Entry<String, String> e : recentSeen.entrySet()) {
+				list.add(Map.entry(e.getKey(), e.getValue() == null ? "" : e.getValue()));
+			}
+			java.util.Collections.reverse(list);
+			return list;
+		}
+	}
+
+	public void shutdown() {
+		if (remoteQueue != null) {
+			remoteQueue.shutdown();
+		}
+		cache.save();
+		overrides.save();
+	}
+
+	/** Drops memoized results so edited/new translations take effect immediately. */
+	public void flushMemo() {
+		synchronized (memo) {
+			memo.clear();
+		}
 	}
 
 	/** Translates one component; returns the original instance when there is no translation. */
@@ -116,16 +197,45 @@ public final class TranslationEngine {
 		if (plain.isBlank()) {
 			return original;
 		}
-		Normalizer.Template template = Normalizer.normalize(plain);
+		Normalizer.Template template = Normalizer.normalize(legacy);
 		for (TranslationProvider provider : providers) {
 			String translation = provider.lookup(template.key());
 			if (translation != null) {
+				remember(template.key(), translation);
 				String restored = Normalizer.restore(translation, template.args());
 				return Component.literal(LegacyText.leadingCodes(legacy) + restored);
 			}
 		}
+		remember(template.key(), null);
 		recordMissing(template.key());
+		if (remoteQueue != null && !rejected.contains(template.key()) && hasLetters(template.key())) {
+			remoteQueue.submit(template.key());
+		}
 		return original;
+	}
+
+	private int remoteResults;
+
+	/** Called from the remote worker thread when an online translation arrives. */
+	private void onRemoteResult(String templateKey, String translation) {
+		if (Normalizer.placeholderCount(translation) != Normalizer.placeholderCount(templateKey)) {
+			rejected.add(templateKey);
+			SkyblockTranslatorClient.LOGGER.debug("MT mangled placeholders, rejected: {}", templateKey);
+			return;
+		}
+		cache.put(templateKey, translation);
+		if (++remoteResults % 20 == 0) {
+			cache.save(); // don't lose a session's worth of MT on a crash
+		}
+		remember(templateKey, translation);
+		flushMemo();
+	}
+
+	private void remember(String templateKey, @Nullable String translation) {
+		synchronized (recentSeen) {
+			recentSeen.remove(templateKey);
+			recentSeen.put(templateKey, translation);
+		}
 	}
 
 	private void recordMissing(String templateKey) {
