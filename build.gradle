@@ -1,0 +1,80 @@
+plugins {
+	id 'net.fabricmc.fabric-loom' version "${loom_version}"
+}
+
+version = project.mod_version
+group = project.maven_group
+
+repositories {
+	// Loom adds the essential maven repositories to download Minecraft and libraries from automatically.
+	// Add repositories here only when depending on other mods.
+	maven {
+		name = 'DevAuth'
+		url = 'https://pkgs.dev.azure.com/djtheredstoner/DevAuth/_packaging/public/maven/v1'
+	}
+}
+
+loom {
+	mods {
+		"skyblock-translator" {
+			sourceSet sourceSets.main
+		}
+	}
+
+	runs {
+		client {
+			// DevAuth: log the dev client into a real Microsoft account.
+			// First launch prints a device-code link; tokens are stored in
+			// ~/.devauth (outside the repo, never committed).
+			vmArg "-Ddevauth.enabled=true"
+		}
+	}
+}
+
+dependencies {
+	// To change the versions see the gradle.properties file
+	minecraft "com.mojang:minecraft:${project.minecraft_version}"
+	implementation "net.fabricmc:fabric-loader:${project.loader_version}"
+
+	implementation "net.fabricmc.fabric-api:fabric-api:${project.fabric_api_version}"
+
+	// Dev-environment only: real-account login for runClient (not bundled in the jar)
+	runtimeOnly "me.djtheredstoner:DevAuth-fabric:1.2.2"
+}
+
+processResources {
+	def version = project.version
+	inputs.property "version", version
+
+	filesMatching("fabric.mod.json") {
+		expand "version": version
+	}
+}
+
+tasks.withType(JavaCompile).configureEach {
+	it.options.release = 25
+	it.options.encoding = 'UTF-8'
+}
+
+java {
+	withSourcesJar()
+
+	// Minecraft 26.x requires Java 25. The foojay resolver (see settings.gradle)
+	// downloads it automatically if missing.
+	toolchain {
+		languageVersion = JavaLanguageVersion.of(25)
+	}
+}
+
+test {
+	useJUnitPlatform()
+}
+
+jar {
+	def projectName = project.name
+	inputs.property "projectName", projectName
+
+	from("LICENSE") {
+		rename { "${it}_$projectName" }
+	}
+}

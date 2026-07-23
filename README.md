@@ -1,26 +1,50 @@
-<!-- markdownlint-disable-file MD001 MD033 -->
-<h2 align="center">LayBalt Repository</h2>
-<h2 align="center">Version 1.0.0</h2>
-<h4 align="center">Skyblock Translator is a 1.8.9 Minecraft Forge mod for Hypixel Skyblock.</h4>
+# SkyBlock Translator
 
----
+**[Русский]** Клиентский Fabric-мод, который переводит Hypixel SkyBlock на ваш язык: предметы, лор, меню, диалоги NPC и чат. Игра «внутри» остаётся английской — перевод накладывается только при отрисовке, поэтому другие моды (NEU, Skyblocker и т.д.), поиск и команды продолжают работать.
 
-<h3 align="center">Mod Information</h3>
-<p align="center">
-Skyblock Translator is a Forge 1.8.9 for Minecraft. This mod will translate all the NPC dialogs, Item description, GUI menu's, etc.
-</p>
+**[English]** A client-side Fabric mod that translates Hypixel SkyBlock into your language: items, lore, menus, NPC dialogues and chat. The game stays English under the hood — translation is applied at render time only, so other mods (NEU, Skyblocker, etc.), search and commands keep working.
 
----
+> ⚠️ В ранней разработке / Early development.
 
-<h3 align="center">Official Links</h3>
-<p align="center">
-Discord: <a href="https://discord.gg/555QWxv6nS">LayBalt Discord</a><br>
-More links coming soon...
-</p>
+## Как это работает / How it works
 
----
+```
+Рендер текста → сегментация (сохраняем §-форматирование)
+  → нормализация (числа → плейсхолдеры: "Damage: +{0}")
+  → словарь → локальный кэш → API-переводчик
+```
 
-<h3 align="center">Contribution Information</h3>
-<p align="center">
-Pull requests are welcome. We recomend using <a href="https://bell-sw.com">BellSoft JDK</a> with this project.
-For more info: <a href="https://github.com/LayBalt/LayBalt-QOL/blob/main/ContributingGuide.md">Contributor Guide</a>.
+- **Free** — встроенные словари, локальный кэш, бесплатный машинный перевод для нового текста (с лимитами).
+- **Premium** (планируется) — облачный сервис: LLM-перевод со SkyBlock-глоссарием, общий кэш переводов, перевод чата игроков, без лимитов. Сам мод бесплатен для всех — Premium это подписка на облачный API.
+
+## Версии / Versions
+
+| | |
+|---|---|
+| Minecraft | 26.2 |
+| Loader | Fabric (Loader ≥ 0.19.3, Fabric API) |
+| Java | 25 |
+
+## Сборка / Building
+
+```
+./gradlew build
+```
+
+Jar появится в `build/libs/`. Для запуска дев-клиента: `./gradlew runClient`. Java 25 скачается автоматически (Gradle toolchain), нужна лишь любая Java 17+ для запуска Gradle.
+
+## Словари / Dictionaries
+
+Переводы лежат в `src/main/resources/assets/skyblock-translator/dict/<lang>/*.json` в формате `"английский шаблон": "перевод"`. Числа и имена заменяются плейсхолдерами `{0}`, `{1}`… — один шаблон покрывает все значения. PR с переводами приветствуются.
+
+## Роадмап / Roadmap
+
+- [x] Фаза 0 — каркас проекта, CI
+- [ ] Фаза 1 — pipeline перевода, словарь, кэш, тултипы и меню
+- [ ] Фаза 2 — чат и диалоги NPC, бесплатный API-переводчик — первый публичный релиз
+- [ ] Фаза 3 — Premium: облачный LLM-перевод, общий кэш, перевод чата игроков
+- [ ] Фаза 4 — scoreboard/bossbar/tablist, другие языки, комьюнити-словари
+
+## Лицензия / License
+
+[MIT](LICENSE). Not affiliated with Hypixel or Mojang.
