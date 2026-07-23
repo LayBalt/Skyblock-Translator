@@ -38,3 +38,14 @@ hs_err_*.log
 replay_*.log
 *.hprof
 *.jfr
+
+# claude
+.claude/
+
+# local secrets / personal data — never commit
+.env
+*.env
+.devauth/
+local.properties
+*.pem
+*.key

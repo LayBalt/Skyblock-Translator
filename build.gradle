@@ -8,12 +8,25 @@ group = project.maven_group
 repositories {
 	// Loom adds the essential maven repositories to download Minecraft and libraries from automatically.
 	// Add repositories here only when depending on other mods.
+	maven {
+		name = 'DevAuth'
+		url = 'https://pkgs.dev.azure.com/djtheredstoner/DevAuth/_packaging/public/maven/v1'
+	}
 }
 
 loom {
 	mods {
 		"skyblock-translator" {
 			sourceSet sourceSets.main
+		}
+	}
+
+	runs {
+		client {
+			// DevAuth: log the dev client into a real Microsoft account.
+			// First launch prints a device-code link; tokens are stored in
+			// ~/.devauth (outside the repo, never committed).
+			vmArg "-Ddevauth.enabled=true"
 		}
 	}
 }
@@ -24,6 +37,9 @@ dependencies {
 	implementation "net.fabricmc:fabric-loader:${project.loader_version}"
 
 	implementation "net.fabricmc.fabric-api:fabric-api:${project.fabric_api_version}"
+
+	// Dev-environment only: real-account login for runClient (not bundled in the jar)
+	runtimeOnly "me.djtheredstoner:DevAuth-fabric:1.2.2"
 }
 
 processResources {
