@@ -3,7 +3,11 @@
 	"package": "dev.laybalt.skyblocktranslator.mixin",
 	"compatibilityLevel": "JAVA_25",
 	"client": [
-		"AbstractContainerScreenMixin"
+		"AbstractContainerScreenMixin",
+		"BossHealthOverlayMixin",
+		"ChatComponentMixin",
+		"HudMixin",
+		"PlayerTabOverlayMixin"
 	],
 	"injectors": {
 		"defaultRequire": 1

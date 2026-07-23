@@ -12,6 +12,14 @@ repositories {
 		name = 'DevAuth'
 		url = 'https://pkgs.dev.azure.com/djtheredstoner/DevAuth/_packaging/public/maven/v1'
 	}
+	maven {
+		name = 'Xander'
+		url = 'https://maven.isxander.dev/releases'
+	}
+	maven {
+		name = 'Terraformers'
+		url = 'https://maven.terraformersmc.com/releases/'
+	}
 }
 
 loom {
@@ -37,6 +45,14 @@ dependencies {
 	implementation "net.fabricmc:fabric-loader:${project.loader_version}"
 
 	implementation "net.fabricmc.fabric-api:fabric-api:${project.fabric_api_version}"
+
+	// Config UI library, bundled into our jar (jar-in-jar)
+	implementation "dev.isxander:yet-another-config-lib:${project.yacl_version}"
+	include "dev.isxander:yet-another-config-lib:${project.yacl_version}"
+
+	// Mod Menu integration (optional at runtime; present in dev for testing)
+	compileOnly "com.terraformersmc:modmenu:${project.modmenu_version}"
+	runtimeOnly "com.terraformersmc:modmenu:${project.modmenu_version}"
 
 	// Dev-environment only: real-account login for runClient (not bundled in the jar)
 	runtimeOnly "me.djtheredstoner:DevAuth-fabric:1.2.2"
