@@ -1,0 +1,32 @@
+{
+	"schemaVersion": 1,
+	"id": "skyblock-translator",
+	"version": "${version}",
+	"name": "SkyBlock Translator",
+	"description": "Translates Hypixel SkyBlock — items, menus, NPC dialogues and chat — into your language.",
+	"authors": [
+		"LayBalt"
+	],
+	"contact": {
+		"homepage": "https://github.com/LayBalt/Skyblock-Translator",
+		"sources": "https://github.com/LayBalt/Skyblock-Translator",
+		"issues": "https://github.com/LayBalt/Skyblock-Translator/issues"
+	},
+	"license": "MIT",
+	"icon": "assets/skyblock-translator/icon.png",
+	"environment": "client",
+	"entrypoints": {
+		"client": [
+			"dev.laybalt.skyblocktranslator.SkyblockTranslatorClient"
+		]
+	},
+	"mixins": [
+		"skyblock-translator.mixins.json"
+	],
+	"depends": {
+		"fabricloader": ">=0.19.3",
+		"minecraft": "~26.2",
+		"java": ">=25",
+		"fabric-api": "*"
+	}
+}
