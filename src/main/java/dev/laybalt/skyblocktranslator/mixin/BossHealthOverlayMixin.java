@@ -22,7 +22,7 @@ public abstract class BossHealthOverlayMixin {
 			index = 1
 	)
 	private Component skyblockTranslator$translateBossBar(Component original) {
-		if (!ModConfig.get().translateBossBar || !HypixelDetector.isTranslationActive()) {
+		if (!ModConfig.get().surfaces.bossBar || !HypixelDetector.isTranslationActive()) {
 			return original;
 		}
 		return TranslationEngine.get().translate(original);

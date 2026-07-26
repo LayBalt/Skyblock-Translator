@@ -23,7 +23,7 @@ import dev.laybalt.skyblocktranslator.pipeline.TranslationEngine;
 public abstract class ChatComponentMixin {
 	@ModifyVariable(method = "addServerSystemMessage", at = @At("HEAD"), argsOnly = true)
 	private Component skyblockTranslator$translateSystem(Component message) {
-		if (!ModConfig.get().translateDialogs || !HypixelDetector.isTranslationActive()
+		if (!ModConfig.get().surfaces.dialogs || !HypixelDetector.isTranslationActive()
 				|| hasInteraction(message)) {
 			return message;
 		}
@@ -32,7 +32,7 @@ public abstract class ChatComponentMixin {
 
 	@ModifyVariable(method = "addPlayerMessage", at = @At("HEAD"), argsOnly = true)
 	private Component skyblockTranslator$translatePlayer(Component message) {
-		if (!ModConfig.get().translatePlayerChat || !HypixelDetector.isTranslationActive()
+		if (!ModConfig.get().surfaces.playerChat || !HypixelDetector.isTranslationActive()
 				|| hasInteraction(message)) {
 			return message;
 		}

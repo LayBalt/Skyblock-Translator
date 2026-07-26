@@ -32,7 +32,7 @@ import dev.laybalt.skyblocktranslator.pipeline.TranslationEngine;
 public abstract class AbstractContainerScreenMixin {
 	@Inject(method = "getTooltipFromContainerItem", at = @At("RETURN"), cancellable = true)
 	private void skyblockTranslator$translateTooltip(ItemStack stack, CallbackInfoReturnable<List<Component>> cir) {
-		if (!ModConfig.get().translateItems || !HypixelDetector.isTranslationActive()) {
+		if (!ModConfig.get().surfaces.items || !HypixelDetector.isTranslationActive()) {
 			return;
 		}
 		List<Component> lines = cir.getReturnValue();
@@ -51,7 +51,7 @@ public abstract class AbstractContainerScreenMixin {
 			index = 1
 	)
 	private Component skyblockTranslator$translateLabel(Component original) {
-		if (!ModConfig.get().translateMenus || !HypixelDetector.isTranslationActive()) {
+		if (!ModConfig.get().surfaces.menus || !HypixelDetector.isTranslationActive()) {
 			return original;
 		}
 		return TranslationEngine.get().translate(original);

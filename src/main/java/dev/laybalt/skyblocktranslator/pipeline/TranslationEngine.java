@@ -71,7 +71,7 @@ public final class TranslationEngine {
 	private final Path dumpFile;
 
 	private TranslationEngine(ModConfig config) {
-		String language = config.language;
+		String language = config.languageCode();
 		this.overrides = new OverrideProvider(ModConfig.directory(), language);
 		this.cache = new LocalCacheProvider(ModConfig.directory(), language);
 		this.providers = List.of(overrides, new DictionaryProvider(language), cache);
@@ -83,15 +83,15 @@ public final class TranslationEngine {
 				SkyblockTranslatorClient.LOGGER.warn("Could not read {}", dumpFile, e);
 			}
 		}
-		this.remoteQueue = config.translateOnline
-				? new RemoteQueue(createTranslator(config), mtLang(language), config.dailyOnlineBudget,
+		this.remoteQueue = config.online.translateOnline
+				? new RemoteQueue(createTranslator(config), mtLang(language), config.online.dailyBudget,
 						ModConfig.directory(), this::onRemoteResult)
 				: null;
 	}
 
 	private static RemoteTranslator createTranslator(ModConfig config) {
-		if ("libretranslate".equals(config.onlineProvider) && !config.libreTranslateUrl.isBlank()) {
-			return new LibreTranslator(config.libreTranslateUrl, config.libreTranslateApiKey);
+		if ("libretranslate".equals(config.onlineProviderCode()) && !config.online.libreUrl.isBlank()) {
+			return new LibreTranslator(config.online.libreUrl, config.online.libreApiKey);
 		}
 		return new GoogleFreeTranslator();
 	}
@@ -293,7 +293,7 @@ public final class TranslationEngine {
 	}
 
 	private void recordMissing(String templateKey) {
-		if (!ModConfig.get().dumpUntranslated || !hasLetters(templateKey) || !dumped.add(templateKey)) {
+		if (!ModConfig.get().online.dumpUntranslated || !hasLetters(templateKey) || !dumped.add(templateKey)) {
 			return;
 		}
 		try {

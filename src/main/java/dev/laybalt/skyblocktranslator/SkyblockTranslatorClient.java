@@ -11,9 +11,9 @@ import org.lwjgl.glfw.GLFW;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import dev.laybalt.skyblocktranslator.config.ConfigHolder;
 import dev.laybalt.skyblocktranslator.config.ModConfig;
 import dev.laybalt.skyblocktranslator.pipeline.TranslationEngine;
-import dev.laybalt.skyblocktranslator.ui.ConfigScreens;
 
 public class SkyblockTranslatorClient implements ClientModInitializer {
 	public static final String MOD_ID = "skyblock-translator";
@@ -31,11 +31,12 @@ public class SkyblockTranslatorClient implements ClientModInitializer {
 				KeyMapping.Category.register(Identifier.fromNamespaceAndPath(MOD_ID, "main"))));
 		ClientTickEvents.END_CLIENT_TICK.register(client -> {
 			while (openConfig.consumeClick()) {
-				client.setScreenAndShow(ConfigScreens.create(null));
+				ConfigHolder.openGui();
 			}
 		});
 
 		ClientLifecycleEvents.CLIENT_STOPPING.register(client -> TranslationEngine.get().shutdown());
-		LOGGER.info("SkyBlock Translator initialized (language={}, enabled={})", config.language, config.enabled);
+		LOGGER.info("SkyBlock Translator initialized (language={}, enabled={})",
+				config.languageCode(), config.general.enabled);
 	}
 }

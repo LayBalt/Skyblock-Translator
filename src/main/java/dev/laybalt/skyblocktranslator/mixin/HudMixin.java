@@ -28,7 +28,7 @@ public abstract class HudMixin {
 			index = 1
 	)
 	private Component skyblockTranslator$translateSidebar(Component original) {
-		if (!ModConfig.get().translateScoreboard || !HypixelDetector.isTranslationActive()) {
+		if (!ModConfig.get().surfaces.scoreboard || !HypixelDetector.isTranslationActive()) {
 			return original;
 		}
 		return TranslationEngine.get().translate(original);

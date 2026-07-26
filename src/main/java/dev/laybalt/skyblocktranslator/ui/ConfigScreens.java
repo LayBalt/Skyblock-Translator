@@ -7,85 +7,28 @@ import java.util.Map;
 import dev.isxander.yacl3.api.ConfigCategory;
 import dev.isxander.yacl3.api.Option;
 import dev.isxander.yacl3.api.OptionDescription;
-import dev.isxander.yacl3.api.OptionGroup;
 import dev.isxander.yacl3.api.YetAnotherConfigLib;
 import dev.isxander.yacl3.api.controller.BooleanControllerBuilder;
-import dev.isxander.yacl3.api.controller.DropdownStringControllerBuilder;
-import dev.isxander.yacl3.api.controller.IntegerFieldControllerBuilder;
 import dev.isxander.yacl3.api.controller.StringControllerBuilder;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.network.chat.Component;
 
-import dev.laybalt.skyblocktranslator.config.ModConfig;
 import dev.laybalt.skyblocktranslator.pipeline.TranslationEngine;
 
 /**
- * The in-game settings UI (YACL): general toggles, language, online translation
- * backend, and a live string editor over the most recently seen templates —
- * edits are saved as user overrides that beat the dictionary and the MT cache.
+ * The in-game translation editor (YACL): the most recently seen strings,
+ * editable in place. Saved edits become user overrides that beat both the
+ * bundled dictionary and the MT cache.
+ *
+ * <p>The main settings live in the MoulConfig screen ({@code ConfigHolder.openGui()});
+ * this screen is reached through its "Translation Editor" button.
  */
 public final class ConfigScreens {
-	private static final List<String> LANGUAGES = List.of(
-			"ru_ru", "uk_ua", "de_de", "fr_fr", "es_es", "pt_br", "pl_pl", "tr_tr", "zh_cn", "ja_jp", "ko_kr");
-	private static final List<String> PROVIDERS = List.of("google", "libretranslate");
-
 	private ConfigScreens() {
 	}
 
-	public static Screen create(Screen parent) {
-		ModConfig config = ModConfig.get();
+	public static Screen createEditor(Screen parent) {
 		Map<String, String> editedOverrides = new LinkedHashMap<>();
-
-		var general = ConfigCategory.createBuilder()
-				.name(Component.translatable("sbt.config.category.general"))
-				.option(bool("sbt.config.enabled", true, () -> config.enabled, v -> config.enabled = v))
-				.option(Option.<String>createBuilder()
-						.name(Component.translatable("sbt.config.language"))
-						.description(OptionDescription.of(Component.translatable("sbt.config.language.desc")))
-						.binding("ru_ru", () -> config.language, v -> config.language = v)
-						.controller(opt -> DropdownStringControllerBuilder.create(opt).values(LANGUAGES))
-						.build())
-				.option(bool("sbt.config.onlyOnHypixel", true, () -> config.onlyOnHypixel, v -> config.onlyOnHypixel = v))
-				.group(OptionGroup.createBuilder()
-						.name(Component.translatable("sbt.config.group.categories"))
-						.option(bool("sbt.config.translateItems", true, () -> config.translateItems, v -> config.translateItems = v))
-						.option(bool("sbt.config.translateMenus", true, () -> config.translateMenus, v -> config.translateMenus = v))
-						.option(bool("sbt.config.translateDialogs", true, () -> config.translateDialogs, v -> config.translateDialogs = v))
-						.option(bool("sbt.config.translatePlayerChat", false, () -> config.translatePlayerChat, v -> config.translatePlayerChat = v))
-						.option(bool("sbt.config.translateScoreboard", true, () -> config.translateScoreboard, v -> config.translateScoreboard = v))
-						.option(bool("sbt.config.translateTabList", true, () -> config.translateTabList, v -> config.translateTabList = v))
-						.option(bool("sbt.config.translateBossBar", true, () -> config.translateBossBar, v -> config.translateBossBar = v))
-						.build())
-				.build();
-
-		var online = ConfigCategory.createBuilder()
-				.name(Component.translatable("sbt.config.category.online"))
-				.option(bool("sbt.config.translateOnline", true, () -> config.translateOnline, v -> config.translateOnline = v))
-				.option(Option.<String>createBuilder()
-						.name(Component.translatable("sbt.config.onlineProvider"))
-						.description(OptionDescription.of(Component.translatable("sbt.config.onlineProvider.desc")))
-						.binding("google", () -> config.onlineProvider, v -> config.onlineProvider = v)
-						.controller(opt -> DropdownStringControllerBuilder.create(opt).values(PROVIDERS))
-						.build())
-				.option(Option.<Integer>createBuilder()
-						.name(Component.translatable("sbt.config.dailyOnlineBudget"))
-						.description(OptionDescription.of(Component.translatable("sbt.config.dailyOnlineBudget.desc")))
-						.binding(2000, () -> config.dailyOnlineBudget, v -> config.dailyOnlineBudget = v)
-						.controller(opt -> IntegerFieldControllerBuilder.create(opt).range(0, 100_000))
-						.build())
-				.option(Option.<String>createBuilder()
-						.name(Component.translatable("sbt.config.libreUrl"))
-						.description(OptionDescription.of(Component.translatable("sbt.config.libreUrl.desc")))
-						.binding("", () -> config.libreTranslateUrl, v -> config.libreTranslateUrl = v)
-						.controller(StringControllerBuilder::create)
-						.build())
-				.option(Option.<String>createBuilder()
-						.name(Component.translatable("sbt.config.libreApiKey"))
-						.description(OptionDescription.of(Component.translatable("sbt.config.libreApiKey.desc")))
-						.binding("", () -> config.libreTranslateApiKey, v -> config.libreTranslateApiKey = v)
-						.controller(StringControllerBuilder::create)
-						.build())
-				.build();
 
 		var editorBuilder = ConfigCategory.createBuilder()
 				.name(Component.translatable("sbt.config.category.editor"));
@@ -118,14 +61,8 @@ public final class ConfigScreens {
 
 		return YetAnotherConfigLib.createBuilder()
 				.title(Component.translatable("sbt.config.title"))
-				.category(general)
-				.category(online)
 				.category(editorBuilder.build())
-				.save(() -> {
-					config.save();
-					applyOverrides(editedOverrides);
-					TranslationEngine.reload();
-				})
+				.save(() -> applyOverrides(editedOverrides))
 				.build()
 				.generateScreen(parent);
 	}
@@ -134,19 +71,10 @@ public final class ConfigScreens {
 		if (edited.isEmpty()) {
 			return;
 		}
-		var overrides = TranslationEngine.get().overrides();
-		edited.forEach(overrides::put);
-		overrides.save();
-	}
-
-	private static Option<Boolean> bool(String key, boolean defaultValue,
-			java.util.function.Supplier<Boolean> getter, java.util.function.Consumer<Boolean> setter) {
-		return Option.<Boolean>createBuilder()
-				.name(Component.translatable(key))
-				.description(OptionDescription.of(Component.translatable(key + ".desc")))
-				.binding(defaultValue, getter::get, setter::accept)
-				.controller(opt -> BooleanControllerBuilder.create(opt).yesNoFormatter())
-				.build();
+		var engine = TranslationEngine.get();
+		edited.forEach(engine.overrides()::put);
+		engine.overrides().save();
+		engine.flushMemo();
 	}
 
 	private static String shorten(String template) {
